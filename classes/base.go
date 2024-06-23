@@ -147,10 +147,14 @@ func (c *BaseClass) PrintState() {
 
 func (c *BaseClass) CaptureGame() error {
 	if c.HWND == 0 {
+		return fmt.Errorf("hwnd not found")
+	}
+
+	dimensions, err := window.DwmGetWindowBounds(c.HWND)
+	if err != nil {
 		return fmt.Errorf("window not found")
 	}
 
-	dimensions, _ := window.DwmGetWindowBounds(c.HWND)
 	b := image.Rect(
 		int(dimensions.Left+1), int(dimensions.Top),
 		int(dimensions.Right-1), int(dimensions.Bottom-1))
