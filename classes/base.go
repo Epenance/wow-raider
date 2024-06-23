@@ -2,8 +2,11 @@ package classes
 
 import (
 	"fmt"
+	"github.com/kbinani/screenshot"
 	"github.com/moutend/go-hook/pkg/keyboard"
 	"github.com/moutend/go-hook/pkg/types"
+	"image"
+	"image/png"
 	"os"
 	"os/signal"
 	"reflect"
@@ -12,10 +15,6 @@ import (
 	"wow-raider/util"
 	"wow-raider/window"
 )
-
-type SetupInterface interface {
-	Setup()
-}
 
 type BaseState struct {
 	IsLoading        bool
@@ -26,13 +25,26 @@ type BaseState struct {
 	OnGlobalCooldown bool
 }
 
+type WeakAura struct {
+	width  int
+	height int
+}
+
 type BaseClass struct {
 	HWND             window.HWND
+	Class            string
+	Spec             string
 	RunProgram       bool
 	PopCooldowns     bool
 	ForceCooldowns   bool
 	InterruptProgram bool
 	State            BaseState
+	GameScreenshot   image.Image
+	WeakAura         WeakAura
+}
+
+func (c *BaseClass) Uninit() {
+	keyboard.Uninstall()
 }
 
 func (c *BaseClass) Init() error {
@@ -44,12 +56,6 @@ func (c *BaseClass) Init() error {
 
 	c.HWND = hwnd
 
-	// Hook for derived classes
-	// Call the Setup method which can be overridden by derived classes
-	if setup, ok := c.Self().(SetupInterface); ok {
-		setup.Setup()
-	}
-
 	// Setup interrupt handling
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
@@ -60,9 +66,11 @@ func (c *BaseClass) Init() error {
 	if err := keyboard.Install(nil, events); err != nil {
 		panic(err)
 	}
-	defer keyboard.Uninstall()
+	// defer keyboard.Uninstall()
+	// defer fmt.Println("Listening for keyboard events")
 
 	go func() {
+
 		for {
 			select {
 			case event := <-events:
@@ -92,6 +100,11 @@ func (c *BaseClass) Init() error {
 					}
 					c.ForceCooldowns = !c.ForceCooldowns
 				}
+
+				if event.VKCode == types.VK_F2 && event.Message == types.WM_KEYDOWN {
+					util.Log("Saving screenshot")
+					c.SaveScreenshot()
+				}
 			case <-interrupt:
 				// If an interrupt signal is received, stop the program.
 				util.Log("Terminating Program...")
@@ -101,13 +114,11 @@ func (c *BaseClass) Init() error {
 		}
 	}()
 
-	return nil
-}
+	util.Log("Initialized " + c.Spec + " " + c.Class)
 
-// Setup method that can be overridden by derived classes
-func (c *BaseClass) Setup() {
-	// Default implementation does nothing
-	util.Log("Setting up Base routine")
+	c.RunProgram = true
+
+	return nil
 }
 
 func (c *BaseClass) CastSpell(spell string, customDelay ...time.Duration) bool {
@@ -134,6 +145,87 @@ func (c *BaseClass) PrintState() {
 	PrintFields(reflect.ValueOf(c.State))
 }
 
-func (c *BaseClass) Self() SetupInterface {
-	return c
+func (c *BaseClass) CaptureGame() error {
+	if c.HWND == 0 {
+		return fmt.Errorf("window not found")
+	}
+
+	dimensions, _ := window.DwmGetWindowBounds(c.HWND)
+	b := image.Rect(
+		int(dimensions.Left+1), int(dimensions.Top),
+		int(dimensions.Right-1), int(dimensions.Bottom-1))
+
+	img, err := screenshot.CaptureRect(b)
+
+	if err != nil {
+		return err
+	}
+
+	c.GameScreenshot = img
+
+	c.SetWeakAuraSize()
+
+	return nil
+}
+
+func (c *BaseClass) SetWeakAuraSize() {
+	bounds := c.GameScreenshot.Bounds()
+	var startX, startY, endX, endY int = -1, -1, -1, -1
+
+	// Find the first BLUE pixel
+	for y := bounds.Min.Y; y <= bounds.Max.Y && startX == -1; y++ {
+		for x := bounds.Min.X; x <= bounds.Max.X; x++ {
+			if util.IsColor(util.COLORS["BLUE"], c.GameScreenshot, x, y) {
+				startX, startY = x, y
+				break
+			}
+		}
+	}
+
+	if startX == -1 { // No BLUE pixel found
+		return
+	}
+
+	// Find the last BLUE pixel to the right from startX, startY
+	endX = startX
+	for x := startX; x <= bounds.Max.X; x++ {
+		if util.IsColor(util.COLORS["BLUE"], c.GameScreenshot, x, startY) {
+			endX = x
+		} else {
+			break
+		}
+	}
+
+	// Find the last BLUE pixel downward from startX, endY
+	endY = startY
+	for y := startY; y <= bounds.Max.Y; y++ {
+		if util.IsColor(util.COLORS["BLUE"], c.GameScreenshot, startX, y) {
+			endY = y
+		} else {
+			break
+		}
+	}
+
+	// Calculate dimensions
+	if endX != -1 && endY != -1 {
+		c.WeakAura.width = endX - startX + 1
+		c.WeakAura.height = endY - startY + 1
+	}
+}
+
+func (c *BaseClass) SaveScreenshot() {
+	fileName := "hello.png"
+	file, _ := os.Create(fileName)
+	err := png.Encode(file, c.GameScreenshot)
+	if err != nil {
+		return
+	}
+	err = file.Close()
+	if err != nil {
+		return
+	}
+}
+
+func (c *BaseClass) SetState() {
+
 }
