@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"time"
 	"wow-raider/classes"
+	"wow-raider/util"
 )
 
 type PaladinState struct {
@@ -29,4 +30,8 @@ type Paladin struct {
 func (c *Paladin) PrintState() {
 	// Use reflect.ValueOf(c).Elem() to get the correct value
 	classes.PrintFields(reflect.ValueOf(c.State))
+}
+
+func (c *Paladin) Setup() {
+	util.Log("Setting Paladin Retribution routine")
 }

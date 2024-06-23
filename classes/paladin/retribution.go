@@ -1,5 +1,9 @@
 package paladin
 
+import (
+	"wow-raider/util"
+)
+
 type RetributionState struct {
 	PaladinState
 }
@@ -15,4 +19,9 @@ func (c *Retribution) Run() {
 			// Do stuff
 		}
 	}
+}
+
+func (c *Retribution) Setup() {
+	util.Log("Setting up Retribution routine")
+	c.Paladin.Setup()
 }

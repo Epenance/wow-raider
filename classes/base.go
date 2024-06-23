@@ -10,7 +10,12 @@ import (
 	"syscall"
 	"time"
 	"wow-raider/util"
+	"wow-raider/window"
 )
+
+type SetupInterface interface {
+	Setup()
+}
 
 type BaseState struct {
 	IsLoading        bool
@@ -22,7 +27,7 @@ type BaseState struct {
 }
 
 type BaseClass struct {
-	HWND             uintptr
+	HWND             window.HWND
 	RunProgram       bool
 	PopCooldowns     bool
 	ForceCooldowns   bool
@@ -31,6 +36,20 @@ type BaseClass struct {
 }
 
 func (c *BaseClass) Init() error {
+	hwnd := window.FindWindowByTitle("World of Warcraft")
+
+	if hwnd == 0 {
+		return fmt.Errorf("window not found")
+	}
+
+	c.HWND = hwnd
+
+	// Hook for derived classes
+	// Call the Setup method which can be overridden by derived classes
+	if setup, ok := c.Self().(SetupInterface); ok {
+		setup.Setup()
+	}
+
 	// Setup interrupt handling
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
@@ -85,6 +104,12 @@ func (c *BaseClass) Init() error {
 	return nil
 }
 
+// Setup method that can be overridden by derived classes
+func (c *BaseClass) Setup() {
+	// Default implementation does nothing
+	util.Log("Setting up Base routine")
+}
+
 func (c *BaseClass) CastSpell(spell string, customDelay ...time.Duration) bool {
 	fmt.Println("Casting Spell: " + spell)
 	return true
@@ -107,4 +132,8 @@ func PrintFields(val reflect.Value) {
 func (c *BaseClass) PrintState() {
 	// Use reflect.ValueOf(c).Elem() to get the correct value
 	PrintFields(reflect.ValueOf(c.State))
+}
+
+func (c *BaseClass) Self() SetupInterface {
+	return c
 }
