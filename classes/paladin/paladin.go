@@ -57,6 +57,9 @@ func (c *Paladin) SetState() {
 	c.State.HammerOfWrathAvailable = c.CheckColor(util.BLUE, 20, 0)
 	c.State.AvengeWrathAvailable = c.CheckColor(util.BLUE, 65, 5)
 	c.State.AvengingWrathActive = c.CheckColor(util.GREEN, 60, 5)
+
+	c.SetZeal()
+	c.SetHolyPower()
 }
 
 func (c *Paladin) SetZeal() {
@@ -89,13 +92,18 @@ func (c *Paladin) SetHolyPower() {
 
 	if isHolyPower1 {
 		c.State.HolyPower = 1
+		return
 	}
 
 	if isHolyPower2 {
 		c.State.HolyPower = 2
+		return
 	}
 
 	if isHolyPower3 {
 		c.State.HolyPower = 3
+		return
 	}
+
+	c.State.HolyPower = 0
 }

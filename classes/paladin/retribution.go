@@ -1,7 +1,6 @@
 package paladin
 
 import (
-	"fmt"
 	"wow-raider/util"
 )
 
@@ -32,8 +31,6 @@ func (c *Retribution) Run() {
 			}
 
 			c.SetState()
-
-			fmt.Println(c.State.IsMounted)
 		}
 	}
 }

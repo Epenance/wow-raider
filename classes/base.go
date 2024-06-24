@@ -1,13 +1,14 @@
 package classes
 
-import "C"
 import (
 	"fmt"
 	"github.com/kbinani/screenshot"
 	"github.com/moutend/go-hook/pkg/keyboard"
 	"github.com/moutend/go-hook/pkg/types"
+	"gopkg.in/yaml.v3"
 	"image"
 	"image/png"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"reflect"
@@ -42,6 +43,7 @@ type BaseClass struct {
 	State            BaseState
 	GameScreenshot   image.Image
 	WeakAura         WeakAura
+	Keybindings      map[string]ConfigKeybinding
 }
 
 func (c *BaseClass) Uninit() {
@@ -49,6 +51,11 @@ func (c *BaseClass) Uninit() {
 }
 
 func (c *BaseClass) Init() error {
+	err := c.LoadConfig()
+	if err != nil {
+		return fmt.Errorf("config not found")
+	}
+
 	hwnd := window.FindWindowByTitle("World of Warcraft")
 
 	if hwnd == 0 {
@@ -67,8 +74,6 @@ func (c *BaseClass) Init() error {
 	if err := keyboard.Install(nil, events); err != nil {
 		panic(err)
 	}
-	// defer keyboard.Uninstall()
-	// defer fmt.Println("Listening for keyboard events")
 
 	go func() {
 
@@ -120,6 +125,38 @@ func (c *BaseClass) Init() error {
 	c.RunProgram = true
 
 	return nil
+}
+
+type ConfigKeybinding struct {
+	Key      string `yaml:"key"`
+	HasCtrl  bool   `yaml:"ctrl,omitempty"`
+	HasShift bool   `yaml:"shift,omitempty"`
+	HasAlt   bool   `yaml:"alt,omitempty"`
+}
+
+type Config struct {
+	Keys map[string]ConfigKeybinding `yaml:"keys"`
+}
+
+func (c *BaseClass) LoadConfig() error {
+	// Read the YAML file
+	data, err := ioutil.ReadFile("config.yaml")
+	if err != nil {
+		return err
+	}
+
+	// Decode the YAML data into Config
+	var cfg Config
+	err = yaml.Unmarshal(data, &cfg)
+	if err != nil {
+		return err
+	}
+
+	// Assign the decoded keys to the BaseClass Keybindings
+	c.Keybindings = cfg.Keys
+
+	return nil
+
 }
 
 func (c *BaseClass) CastSpell(spell string, customDelay ...time.Duration) bool {
@@ -285,9 +322,6 @@ func (c *BaseClass) SetState() {
 	c.State.IsMounted = c.CheckColor(util.PURPLE, 5, 5)
 	c.State.ChatOpen = c.CheckColor(util.PURPLE, 15, 5)
 	c.State.OnGlobalCooldown = c.CheckColor(util.GREEN, 40, 5)
-
-	fmt.Println(c.State.IsMounted)
-
 }
 
 func (c *BaseClass) SyncState(base, target interface{}) {

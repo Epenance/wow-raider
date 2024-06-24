@@ -1,0 +1,39 @@
+keys:
+  Divine Storm:
+    key: 2
+  Crusader Strike:
+    key: 1
+  Judgement:
+    key: 4
+  Templar's Verdict:
+    key: 3
+  Exorcism:
+    key: 6
+  Hammer of Wrath:
+    key: 7
+  Consecration:
+    key: 5
+  Retribution Aura:
+    key: 2
+    ctrl: true
+  Seal of Righteousness:
+    key: 1
+    ctrl: true
+  Seal of Truth:
+    key: 4
+    ctrl: true
+  Blessing of Might:
+    key: 3
+    ctrl: true
+  Inquisition:
+    key: 5
+    ctrl: true
+  Zealotry:
+    key: 6
+    ctrl: true
+  Avenging Wrath:
+    key: 7
+    ctrl: true
+  Trinket 1:
+    key: 8
+    ctrl: true
