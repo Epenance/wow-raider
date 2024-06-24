@@ -1,5 +1,9 @@
 package paladin
 
+import (
+	"fmt"
+)
+
 type RetributionState struct {
 	PaladinState
 }
@@ -20,6 +24,8 @@ func (c *Retribution) Run() {
 			}
 
 			c.SetState()
+
+			fmt.Println(c.State.IsMounted)
 		}
 	}
 }
@@ -36,6 +42,9 @@ func (c *Retribution) Init() error {
 
 func (c *Retribution) SetState() {
 	c.Paladin.SetState()
+
+	// Hack because there is no inheritance in Go
+	c.SyncState(&c.Paladin.State, &c.State)
 }
 
 func (c *Retribution) Rotation() {

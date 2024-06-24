@@ -56,12 +56,7 @@ func IsColor(rgb RGB, img image.Image, x int, y int, debug ...bool) bool {
 		isDebug = false // Default value
 	}
 
-	// Get image size
-	bounds := img.Bounds()
-
-	width, height := bounds.Dx(), bounds.Dy()
-
-	r, g, b := PixelColorAt(img, width-x, height-y)
+	r, g, b := PixelColorAt(img, x, y)
 
 	correctColors := r == rgb.R && g == rgb.G && b == rgb.B
 
@@ -69,5 +64,5 @@ func IsColor(rgb RGB, img image.Image, x int, y int, debug ...bool) bool {
 		fmt.Printf("Matches: %d R: %d, G: %d, B: %d\n", correctColors, r, g, b)
 	}
 
-	return r == rgb.R && g == rgb.G && b == rgb.B
+	return correctColors
 }

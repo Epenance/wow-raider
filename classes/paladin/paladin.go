@@ -14,7 +14,7 @@ type PaladinState struct {
 	ActiveSeal              string
 	ShouldAoE               bool
 	ConsecrationAvailable   bool
-	BlesssingOn             bool
+	BlessingOn              bool
 	HammerOfWrathAvailable  bool
 	AvengeWrathAvailable    bool
 	AvengingWrathActive     bool
@@ -43,4 +43,7 @@ func (c *Paladin) Init() error {
 
 func (c *Paladin) SetState() {
 	c.BaseClass.SetState()
+
+	// Hack because there is no inheritance in Go
+	c.SyncState(&c.BaseClass.State, &c.State)
 }

@@ -1,5 +1,6 @@
 package classes
 
+import "C"
 import (
 	"fmt"
 	"github.com/kbinani/screenshot"
@@ -131,11 +132,16 @@ func PrintFields(val reflect.Value) {
 		valueField := val.Field(i)
 		typeField := val.Type().Field(i)
 
-		// Check if the field is a nested struct
-		if valueField.Kind() == reflect.Struct {
-			PrintFields(valueField)
+		// Check if the field is exported
+		if valueField.CanInterface() {
+			// Check if the field is a nested struct
+			if valueField.Kind() == reflect.Struct {
+				PrintFields(valueField)
+			} else {
+				fmt.Printf("%s: %v\n", typeField.Name, valueField.Interface())
+			}
 		} else {
-			fmt.Printf("%s: %v\n", typeField.Name, valueField.Interface())
+			// Ignore the field
 		}
 	}
 }
@@ -172,12 +178,54 @@ func (c *BaseClass) CaptureGame() error {
 	return nil
 }
 
+func (c *BaseClass) CheckColor(color util.RGB, x, y int) bool {
+	x, y = c.GetActualPosition(x, y)
+	return util.IsColor(color, c.GameScreenshot, x, y)
+}
+
+func (c *BaseClass) GetColor(x, y int) util.RGB {
+	x, y = c.GetActualPosition(x, y)
+	r, g, b := util.PixelColorAt(c.GameScreenshot, x, y)
+	return util.RGB{R: r, G: g, B: b}
+}
+
+func (c *BaseClass) GetActualPosition(x, y int) (int, int) {
+	inGameX, inGameY := 5, 5
+	waX, waY := c.WeakAura.width, c.WeakAura.height
+
+	// Fallback Sizes
+	if waX == 0 {
+		waX = 5
+	}
+
+	if waY == 0 {
+		waY = 5
+	}
+
+	// Get the multiplier for X & Y size
+	multiplierX := x / inGameX
+	multiplierY := y / inGameY
+
+	// Real Pixel Positions
+	x = waX * multiplierX
+	y = waY * multiplierY
+
+	// Now add the center of the Weak Aura sizes
+	x += waX / 2
+	y += waY / 2
+
+	bounds := c.GameScreenshot.Bounds()
+	width, height := bounds.Dx(), bounds.Dy()
+
+	return width - x, height - y
+}
+
 func (c *BaseClass) SetWeakAuraSize() {
 	var colorToFind = util.COLORS["BLUE"]
 	bounds := c.GameScreenshot.Bounds()
 	var startX, startY, endX, endY int = -1, -1, -1, -1
 
-	// Find the first BLUE pixel
+	// Find the first matching pixel
 	for y := bounds.Min.Y; y <= bounds.Max.Y && startX == -1; y++ {
 		for x := bounds.Min.X; x <= bounds.Max.X; x++ {
 			if util.IsColor(colorToFind, c.GameScreenshot, x, y) {
@@ -187,11 +235,11 @@ func (c *BaseClass) SetWeakAuraSize() {
 		}
 	}
 
-	if startX == -1 { // No BLUE pixel found
+	if startX == -1 { // No matching pixel found
 		return
 	}
 
-	// Find the last BLUE pixel to the right from startX, startY
+	// Find the last matching pixel to the right from startX, startY
 	endX = startX
 	for x := startX; x <= bounds.Max.X; x++ {
 		if util.IsColor(colorToFind, c.GameScreenshot, x, startY) {
@@ -201,7 +249,7 @@ func (c *BaseClass) SetWeakAuraSize() {
 		}
 	}
 
-	// Find the last BLUE pixel downward from startX, endY
+	// Find the last matching pixel downward from startX, endY
 	endY = startY
 	for y := startY; y <= bounds.Max.Y; y++ {
 		if util.IsColor(colorToFind, c.GameScreenshot, startX, y) {
@@ -232,5 +280,26 @@ func (c *BaseClass) SaveScreenshot() {
 }
 
 func (c *BaseClass) SetState() {
+	c.State.IsAlive = !c.CheckColor(util.PURPLE, 0, 5)
+	c.State.InCombat = c.CheckColor(util.PURPLE, 10, 0)
+	c.State.IsMounted = c.CheckColor(util.PURPLE, 5, 5)
+	c.State.ChatOpen = c.CheckColor(util.PURPLE, 15, 5)
+	c.State.OnGlobalCooldown = c.CheckColor(util.GREEN, 40, 5)
 
+	fmt.Println(c.State.IsMounted)
+
+}
+
+func (c *BaseClass) SyncState(base, target interface{}) {
+	baseVal := reflect.ValueOf(base).Elem()
+	targetVal := reflect.ValueOf(target).Elem()
+
+	for i := 0; i < baseVal.NumField(); i++ {
+		baseField := baseVal.Field(i)
+		targetField := targetVal.FieldByName(baseVal.Type().Field(i).Name)
+
+		if targetField.IsValid() && targetField.CanSet() {
+			targetField.Set(baseField)
+		}
+	}
 }
