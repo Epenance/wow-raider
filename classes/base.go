@@ -2,6 +2,7 @@ package classes
 
 import (
 	"fmt"
+	"github.com/epenance/virtual_keyboard"
 	"github.com/kbinani/screenshot"
 	"github.com/moutend/go-hook/pkg/keyboard"
 	"github.com/moutend/go-hook/pkg/types"
@@ -159,9 +160,46 @@ func (c *BaseClass) LoadConfig() error {
 
 }
 
-func (c *BaseClass) CastSpell(spell string, customDelay ...time.Duration) bool {
-	fmt.Println("Casting Spell: " + spell)
-	return true
+func (c *BaseClass) CastSpell(spell string, customDelay ...time.Duration) {
+	var delay time.Duration
+	if len(customDelay) > 0 {
+		delay = customDelay[0]
+	} else {
+		delay = 150
+	}
+
+	kb, err := virtual_keyboard.NewKeyBonding()
+	kb.AddHWND(uintptr(c.HWND))
+	if err != nil {
+		panic(err)
+	}
+
+	// Check if the spell exists in the keybindings
+	if _, ok := c.Keybindings[spell]; !ok {
+		util.Log("Keybinding not found for: " + spell)
+		return
+	}
+
+	kb.SetKeys(c.Keybindings[spell].Key)
+
+	if c.Keybindings[spell].HasShift {
+		kb.HasSHIFT(true)
+	}
+
+	if c.Keybindings[spell].HasCtrl {
+		kb.HasCTRL(true)
+	}
+
+	if c.Keybindings[spell].HasAlt {
+		kb.HasALT(true)
+	}
+	util.Log("Casting: " + spell)
+	err = kb.Launch()
+	if err != nil {
+		panic(err)
+	}
+
+	time.Sleep(delay * time.Millisecond)
 }
 
 func PrintFields(val reflect.Value) {
@@ -321,7 +359,7 @@ func (c *BaseClass) SetState() {
 	c.State.InCombat = c.CheckColor(util.PURPLE, 10, 0)
 	c.State.IsMounted = c.CheckColor(util.PURPLE, 5, 5)
 	c.State.ChatOpen = c.CheckColor(util.PURPLE, 15, 5)
-	c.State.OnGlobalCooldown = c.CheckColor(util.GREEN, 40, 5)
+	c.State.OnGlobalCooldown = c.CheckColor(util.PURPLE, 40, 5)
 }
 
 func (c *BaseClass) SyncState(base, target interface{}) {

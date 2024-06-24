@@ -1,18 +1,20 @@
 package paladin
 
 import (
+	"time"
 	"wow-raider/util"
 )
 
 type RetributionState struct {
 	PaladinState
-	DivineStormAvailable bool
-	ArtOfWarActive       bool
-	TemplarsVerdictReady bool
-	DivinePurposeActive  bool
-	InquisitionActive    bool
-	ZealotryActive       bool
-	ZealotryAvailable    bool
+	DivineStormAvailable      bool
+	ArtOfWarActive            bool
+	TemplarsVerdictReady      bool
+	DivinePurposeActive       bool
+	InquisitionActive         bool
+	ZealotryActive            bool
+	ZealotryAvailable         bool
+	JudgementsOfThePureActive bool
 }
 
 type Retribution struct {
@@ -31,6 +33,8 @@ func (c *Retribution) Run() {
 			}
 
 			c.SetState()
+
+			c.Rotation()
 		}
 	}
 }
@@ -58,8 +62,98 @@ func (c *Retribution) SetState() {
 	c.State.InquisitionActive = c.CheckColor(util.GREEN, 55, 0)
 	c.State.ZealotryActive = c.CheckColor(util.GREEN, 60, 0)
 	c.State.ZealotryAvailable = c.CheckColor(util.BLUE, 65, 0)
+	c.State.JudgementsOfThePureActive = c.CheckColor(util.GREEN, 70, 0)
 }
 
 func (c *Retribution) Rotation() {
 	// Do stuff
+	now := time.Now()
+	fiveSeconds := 5 * time.Second
+
+	if c.State.ChatOpen {
+		return
+	}
+
+	state := c.State
+
+	if now.Sub(c.State.LastZealCast) > fiveSeconds {
+		// fmt.Println("5 seconds gone by?")
+		if state.IsAlive &&
+			!state.IsMounted && !state.ShouldAoE && state.ActiveSeal != "Seal of Truth" && !state.OnGlobalCooldown {
+			c.State.LastZealCast = now
+			c.CastSpell("Seal of Truth")
+
+			return
+		}
+
+		if state.IsAlive &&
+			!state.IsMounted && state.ShouldAoE && state.ActiveSeal != "Seal of Righteousness" && !state.OnGlobalCooldown {
+			c.State.LastZealCast = now
+			c.CastSpell("Seal of Righteousness")
+			return
+		}
+	}
+
+	if state.IsAlive && !state.IsMounted && !state.BlessingOn && !state.InCombat {
+		c.CastSpell("Blessing of Might")
+		return
+	}
+
+	if state.IsAlive && !state.IsMounted && state.InCombat && state.IsJudgementReady && state.ActiveSeal != "none" && !state.JudgementsOfThePureActive {
+		c.CastSpell("Judgement")
+		return
+	}
+
+	if state.IsAlive && !state.IsMounted && state.InCombat && (c.PopCooldowns || c.ForceCooldowns) && state.ZealotryAvailable {
+		c.CastSpell("Zealotry")
+		return
+	}
+
+	if state.IsAlive && !state.OnGlobalCooldown && !state.IsMounted && state.InCombat && !state.InquisitionActive && (state.HolyPower > 0 || state.DivinePurposeActive) {
+		c.CastSpell("Inquisition")
+		return
+	}
+
+	if state.IsAlive && !state.IsMounted && state.InCombat && (c.PopCooldowns || c.ForceCooldowns) && state.ZealotryActive && state.AvengingWrathAvailable {
+		c.CastSpell("Avenging Wrath", 10)
+		c.CastSpell("Trinket 1")
+		c.PopCooldowns = false
+		return
+	}
+
+	if state.IsAlive && !state.IsMounted && state.InCombat && state.CrusaderStrikeAvailable && state.HolyPower != 3 {
+		if state.ShouldAoE && state.DivineStormAvailable {
+			c.CastSpell("Divine Storm")
+			return
+		}
+
+		c.CastSpell("Crusader Strike")
+		return
+	}
+
+	if state.IsAlive && !state.IsMounted && state.InCombat && state.TemplarsVerdictReady && (state.HolyPower == 3 || state.DivinePurposeActive) {
+		c.CastSpell("Templar's Verdict")
+		return
+	}
+
+	if state.IsAlive && !state.IsMounted && state.InCombat && state.ArtOfWarActive {
+		c.CastSpell("Exorcism")
+		return
+	}
+
+	if state.IsAlive && !state.IsMounted && state.InCombat && state.HammerOfWrathAvailable {
+		c.CastSpell("Hammer of Wrath")
+		return
+	}
+
+	if state.IsAlive && !state.IsMounted && state.InCombat && state.ConsecrationAvailable && state.ShouldAoE {
+		c.CastSpell("Consecration")
+		return
+	}
+
+	if state.IsAlive && !state.IsMounted && state.InCombat && state.IsJudgementReady && state.ActiveSeal != "none" {
+		c.CastSpell("Judgement")
+		return
+	}
+
 }

@@ -17,7 +17,7 @@ type PaladinState struct {
 	ConsecrationAvailable   bool
 	BlessingOn              bool
 	HammerOfWrathAvailable  bool
-	AvengeWrathAvailable    bool
+	AvengingWrathAvailable  bool
 	AvengingWrathActive     bool
 	LastZealCast            time.Time
 }
@@ -55,7 +55,7 @@ func (c *Paladin) SetState() {
 	c.State.ConsecrationAvailable = c.CheckColor(util.YELLOW, 45, 0)
 	c.State.BlessingOn = !c.CheckColor(util.RED, 25, 5)
 	c.State.HammerOfWrathAvailable = c.CheckColor(util.BLUE, 20, 0)
-	c.State.AvengeWrathAvailable = c.CheckColor(util.BLUE, 65, 5)
+	c.State.AvengingWrathAvailable = c.CheckColor(util.BLUE, 65, 5)
 	c.State.AvengingWrathActive = c.CheckColor(util.GREEN, 60, 5)
 
 	c.SetZeal()
