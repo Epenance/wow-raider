@@ -173,13 +173,14 @@ func (c *BaseClass) CaptureGame() error {
 }
 
 func (c *BaseClass) SetWeakAuraSize() {
+	var colorToFind = util.COLORS["BLUE"]
 	bounds := c.GameScreenshot.Bounds()
 	var startX, startY, endX, endY int = -1, -1, -1, -1
 
 	// Find the first BLUE pixel
 	for y := bounds.Min.Y; y <= bounds.Max.Y && startX == -1; y++ {
 		for x := bounds.Min.X; x <= bounds.Max.X; x++ {
-			if util.IsColor(util.COLORS["BLUE"], c.GameScreenshot, x, y) {
+			if util.IsColor(colorToFind, c.GameScreenshot, x, y) {
 				startX, startY = x, y
 				break
 			}
@@ -193,7 +194,7 @@ func (c *BaseClass) SetWeakAuraSize() {
 	// Find the last BLUE pixel to the right from startX, startY
 	endX = startX
 	for x := startX; x <= bounds.Max.X; x++ {
-		if util.IsColor(util.COLORS["BLUE"], c.GameScreenshot, x, startY) {
+		if util.IsColor(colorToFind, c.GameScreenshot, x, startY) {
 			endX = x
 		} else {
 			break
@@ -203,7 +204,7 @@ func (c *BaseClass) SetWeakAuraSize() {
 	// Find the last BLUE pixel downward from startX, endY
 	endY = startY
 	for y := startY; y <= bounds.Max.Y; y++ {
-		if util.IsColor(util.COLORS["BLUE"], c.GameScreenshot, startX, y) {
+		if util.IsColor(colorToFind, c.GameScreenshot, startX, y) {
 			endY = y
 		} else {
 			break
