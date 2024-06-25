@@ -355,7 +355,7 @@ func (c *BaseClass) SaveScreenshot() {
 }
 
 func (c *BaseClass) SetState() {
-	c.State.IsAlive = !c.CheckColor(util.PURPLE, 0, 5)
+	c.State.IsAlive = c.CheckColor(util.PURPLE, 0, 5)
 	c.State.InCombat = c.CheckColor(util.PURPLE, 10, 0)
 	c.State.IsMounted = c.CheckColor(util.PURPLE, 5, 5)
 	c.State.ChatOpen = c.CheckColor(util.PURPLE, 15, 5)
