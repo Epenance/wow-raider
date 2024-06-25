@@ -29,10 +29,8 @@ func (c *Retribution) Run() {
 
 	go func() {
 		for !c.InterruptProgram {
-			if c.RunProgram {
-				c.UpdateTables()
-				time.Sleep(100 * time.Millisecond)
-			}
+			c.UpdateTables()
+			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 

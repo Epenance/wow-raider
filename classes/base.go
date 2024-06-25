@@ -179,7 +179,7 @@ func (c *BaseClass) Init() error {
 		flex := tview.NewFlex().
 			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 				AddItem(options, 0, 1, false).
-				AddItem(stateTable, 0, 1, false), 0, 1, false).
+				AddItem(stateTable, 0, 2, false), 0, 1, false).
 			AddItem(logs, 0, 2, false)
 		if err := c.TView.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
 			panic(err)

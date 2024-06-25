@@ -36,6 +36,7 @@ func (c *Paladin) PrintState() {
 
 func (c *Paladin) Init() error {
 	c.Class = "Paladin"
+	c.State.ActiveSeal = "none"
 
 	if err := c.BaseClass.Init(); err != nil {
 		return err
