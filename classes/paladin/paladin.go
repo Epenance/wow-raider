@@ -1,6 +1,8 @@
 package paladin
 
 import (
+	"fmt"
+	"github.com/gdamore/tcell/v2"
 	"reflect"
 	"time"
 	"wow-raider/classes"
@@ -109,5 +111,23 @@ func (c *Paladin) SetHolyPower() {
 }
 
 func (c *Paladin) UpdateTables() {
+	stateValues := c.TViewTableValues["state"]
+
+	/*
+		HolyPower               int
+			CrusaderStrikeAvailable bool
+			IsJudgementReady        bool
+			ActiveSeal              string
+			ShouldAoE               bool
+			ConsecrationAvailable   bool
+			BlessingOn              bool
+			HammerOfWrathAvailable  bool
+			AvengingWrathAvailable  bool
+			AvengingWrathActive     bool
+			LastZealCast            time.Time
+	*/
+
+	stateValues["Crusader Strike Available"] = classes.TableCellValue{ZIndex: 31, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.CrusaderStrikeAvailable), ValueColor: util.GetColor(c.State.CrusaderStrikeAvailable, tcell.ColorGreen, tcell.ColorRed)}
+
 	c.BaseClass.UpdateTables()
 }

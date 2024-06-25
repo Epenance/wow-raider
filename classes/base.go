@@ -445,6 +445,12 @@ func (c *BaseClass) UpdateTables() {
 		optionValues["Use cooldowns"] = TableCellValue{ZIndex: 20, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.PopCooldowns), ValueColor: util.GetColor(c.PopCooldowns, tcell.ColorGreen, tcell.ColorRed)}
 		optionValues["Rotate cooldowns"] = TableCellValue{ZIndex: 30, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.ForceCooldowns), ValueColor: util.GetColor(c.ForceCooldowns, tcell.ColorGreen, tcell.ColorRed)}
 
+		stateValues["Is Alive"] = TableCellValue{ZIndex: 999, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.IsAlive), ValueColor: util.GetColor(c.State.IsAlive, tcell.ColorGreen, tcell.ColorRed)}
+		stateValues["In Combat"] = TableCellValue{ZIndex: 998, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.InCombat), ValueColor: util.GetColor(c.State.InCombat, tcell.ColorGreen, tcell.ColorRed)}
+		stateValues["Is Mounted"] = TableCellValue{ZIndex: 997, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.IsMounted), ValueColor: util.GetColor(c.State.IsMounted, tcell.ColorGreen, tcell.ColorRed)}
+		stateValues["Chat Open"] = TableCellValue{ZIndex: 996, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.ChatOpen), ValueColor: util.GetColor(c.State.ChatOpen, tcell.ColorGreen, tcell.ColorRed)}
+		stateValues["On Global Cooldown"] = TableCellValue{ZIndex: 100, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.OnGlobalCooldown), ValueColor: util.GetColor(c.State.OnGlobalCooldown, tcell.ColorGreen, tcell.ColorRed)}
+
 		// Remap the option values to a sortable slice
 		sortedOptionValues := make([]struct {
 			Key   string
@@ -458,8 +464,11 @@ func (c *BaseClass) UpdateTables() {
 			}{Key: k, Value: v})
 		}
 
-		// Sort slice by ZIndex
+		// Sort slice by ZIndex, then alphabetically by Key
 		sort.Slice(sortedOptionValues, func(i, j int) bool {
+			if sortedOptionValues[i].Value.ZIndex == sortedOptionValues[j].Value.ZIndex {
+				return sortedOptionValues[i].Key < sortedOptionValues[j].Key // Alphabetical order if ZIndex are equal
+			}
 			return sortedOptionValues[i].Value.ZIndex < sortedOptionValues[j].Value.ZIndex
 		})
 
@@ -467,12 +476,6 @@ func (c *BaseClass) UpdateTables() {
 			options.SetCell(i, 0, tview.NewTableCell(kv.Key).SetTextColor(kv.Value.NameColor).SetAlign(tview.AlignLeft))
 			options.SetCell(i, 1, tview.NewTableCell(kv.Value.Value).SetTextColor(kv.Value.ValueColor).SetAlign(tview.AlignLeft).SetExpansion(1))
 		}
-
-		stateValues["Is Alive"] = TableCellValue{ZIndex: 999, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.IsAlive), ValueColor: util.GetColor(c.State.IsAlive, tcell.ColorGreen, tcell.ColorRed)}
-		stateValues["In Combat"] = TableCellValue{ZIndex: 998, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.InCombat), ValueColor: util.GetColor(c.State.InCombat, tcell.ColorGreen, tcell.ColorRed)}
-		stateValues["Is Mounted"] = TableCellValue{ZIndex: 997, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.IsMounted), ValueColor: util.GetColor(c.State.IsMounted, tcell.ColorGreen, tcell.ColorRed)}
-		stateValues["Chat Open"] = TableCellValue{ZIndex: 996, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.ChatOpen), ValueColor: util.GetColor(c.State.ChatOpen, tcell.ColorGreen, tcell.ColorRed)}
-		stateValues["On Global Cooldown"] = TableCellValue{ZIndex: 100, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.OnGlobalCooldown), ValueColor: util.GetColor(c.State.OnGlobalCooldown, tcell.ColorGreen, tcell.ColorRed)}
 
 		// Remap the state values to a sortable slice
 		sortedStateValues := make([]struct {
@@ -487,8 +490,11 @@ func (c *BaseClass) UpdateTables() {
 			}{Key: k, Value: v})
 		}
 
-		// Sort slice by ZIndex
+		// Sort slice by ZIndex, then alphabetically by Key
 		sort.Slice(sortedStateValues, func(i, j int) bool {
+			if sortedStateValues[i].Value.ZIndex == sortedStateValues[j].Value.ZIndex {
+				return sortedStateValues[i].Key < sortedStateValues[j].Key // Alphabetical order if ZIndex are equal
+			}
 			return sortedStateValues[i].Value.ZIndex < sortedStateValues[j].Value.ZIndex
 		})
 
