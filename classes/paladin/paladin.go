@@ -128,6 +128,15 @@ func (c *Paladin) UpdateTables() {
 	*/
 
 	stateValues["Crusader Strike Available"] = classes.TableCellValue{ZIndex: 31, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.CrusaderStrikeAvailable), ValueColor: util.GetColor(c.State.CrusaderStrikeAvailable, tcell.ColorGreen, tcell.ColorRed)}
+	stateValues["Judgement Ready"] = classes.TableCellValue{ZIndex: 32, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.IsJudgementReady), ValueColor: util.GetColor(c.State.IsJudgementReady, tcell.ColorGreen, tcell.ColorRed)}
+	stateValues["Active Seal"] = classes.TableCellValue{ZIndex: 33, NameColor: tcell.ColorWhite, Value: c.State.ActiveSeal, ValueColor: tcell.ColorWhite}
+
+	stateValues["Should AoE"] = classes.TableCellValue{ZIndex: 40, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.ShouldAoE), ValueColor: util.GetColor(c.State.ShouldAoE, tcell.ColorGreen, tcell.ColorRed)}
+	stateValues["Consecration Available"] = classes.TableCellValue{ZIndex: 41, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.ConsecrationAvailable), ValueColor: util.GetColor(c.State.ConsecrationAvailable, tcell.ColorGreen, tcell.ColorRed)}
+	stateValues["Blessing On"] = classes.TableCellValue{ZIndex: 42, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.BlessingOn), ValueColor: util.GetColor(c.State.BlessingOn, tcell.ColorGreen, tcell.ColorRed)}
+	stateValues["Hammer of Wrath Available"] = classes.TableCellValue{ZIndex: 43, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.HammerOfWrathAvailable), ValueColor: util.GetColor(c.State.HammerOfWrathAvailable, tcell.ColorGreen, tcell.ColorRed)}
+	stateValues["Avenging Wrath Available"] = classes.TableCellValue{ZIndex: 44, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.AvengingWrathAvailable), ValueColor: util.GetColor(c.State.AvengingWrathAvailable, tcell.ColorGreen, tcell.ColorRed)}
+	stateValues["Avenging Wrath Active"] = classes.TableCellValue{ZIndex: 45, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.AvengingWrathActive), ValueColor: util.GetColor(c.State.AvengingWrathActive, tcell.ColorGreen, tcell.ColorRed)}
 
 	c.BaseClass.UpdateTables()
 }

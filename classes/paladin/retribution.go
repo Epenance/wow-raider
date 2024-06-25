@@ -26,9 +26,23 @@ type Retribution struct {
 }
 
 func (c *Retribution) Run() {
+
+	go func() {
+		for !c.InterruptProgram {
+			if c.RunProgram {
+				c.UpdateTables()
+				time.Sleep(100 * time.Millisecond)
+			}
+		}
+	}()
+
+	frequency := 30                                 // Updates per second
+	delay := time.Second / time.Duration(frequency) // Delay between each iteration
+
 	for !c.InterruptProgram {
+		startTime := time.Now()
+
 		if c.RunProgram {
-			// Do stuff
 			err := c.CaptureGame()
 
 			if err != nil {
@@ -38,9 +52,14 @@ func (c *Retribution) Run() {
 			c.SetState()
 
 			c.Rotation()
-			c.UpdateTables()
+		}
+
+		elapsed := time.Since(startTime) // Time spend in this iteration
+		if elapsed < delay {
+			time.Sleep(delay - elapsed) // Delay for the remaining time
 		}
 	}
+
 }
 
 func (c *Retribution) Init() error {
