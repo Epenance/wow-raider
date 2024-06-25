@@ -3,9 +3,11 @@ package classes
 import (
 	"fmt"
 	"github.com/epenance/virtual_keyboard"
+	"github.com/gdamore/tcell/v2"
 	"github.com/kbinani/screenshot"
 	"github.com/moutend/go-hook/pkg/keyboard"
 	"github.com/moutend/go-hook/pkg/types"
+	"github.com/rivo/tview"
 	"gopkg.in/yaml.v3"
 	"image"
 	"image/png"
@@ -13,6 +15,7 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"sort"
 	"syscall"
 	"time"
 	"wow-raider/util"
@@ -35,6 +38,9 @@ type WeakAura struct {
 
 type BaseClass struct {
 	HWND             window.HWND
+	TView            *tview.Application
+	TViewTables      map[string]*tview.Table
+	TViewTableValues map[string]map[string]TableCellValue
 	Class            string
 	Spec             string
 	RunProgram       bool
@@ -47,11 +53,35 @@ type BaseClass struct {
 	Keybindings      map[string]ConfigKeybinding
 }
 
+type ConfigKeybinding struct {
+	Key      string `yaml:"key"`
+	HasCtrl  bool   `yaml:"ctrl,omitempty"`
+	HasShift bool   `yaml:"shift,omitempty"`
+	HasAlt   bool   `yaml:"alt,omitempty"`
+}
+
+type Config struct {
+	Keys map[string]ConfigKeybinding `yaml:"keys"`
+}
+
+type TableCellValue struct {
+	ZIndex     int
+	NameColor  tcell.Color
+	Value      string
+	ValueColor tcell.Color
+}
+
 func (c *BaseClass) Uninit() {
 	keyboard.Uninstall()
 }
 
 func (c *BaseClass) Init() error {
+	c.TViewTables = make(map[string]*tview.Table)
+
+	c.TViewTableValues = make(map[string]map[string]TableCellValue)
+	c.TViewTableValues["options"] = make(map[string]TableCellValue)
+	c.TViewTableValues["state"] = make(map[string]TableCellValue)
+
 	err := c.LoadConfig()
 	if err != nil {
 		return fmt.Errorf("config not found")
@@ -121,22 +151,49 @@ func (c *BaseClass) Init() error {
 		}
 	}()
 
+	c.TView = tview.NewApplication()
+
+	options := tview.NewTable().SetSelectedStyle(tcell.Style{}.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite))
+	options.SetTitle("Options").SetBorder(true)
+
+	stateTable := tview.NewTable().SetSelectedStyle(tcell.Style{}.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite))
+	stateTable.SetTitle("State").SetBorder(true)
+
+	c.TViewTables["options"] = options
+	c.TViewTables["state"] = stateTable
+
+	logs := tview.NewTextView().
+		SetDynamicColors(true).
+		SetRegions(true).
+		SetWordWrap(true).
+		SetScrollable(true)
+
+	logs.SetChangedFunc(func() {
+		c.TView.Draw()
+		logs.ScrollToEnd() // Automatically scroll to the end
+	})
+
+	util.SetWriter(logs)
+
+	go func() {
+		flex := tview.NewFlex().
+			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+				AddItem(options, 0, 1, false).
+				AddItem(stateTable, 0, 1, false), 0, 1, false).
+			AddItem(logs, 0, 2, false)
+		if err := c.TView.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
+			panic(err)
+		}
+
+		// Closing down the app when the program is interrupted (ctrl + c)
+		interrupt <- syscall.SIGINT
+	}()
+
 	util.Log("Initialized " + c.Spec + " " + c.Class)
 
 	c.RunProgram = true
 
 	return nil
-}
-
-type ConfigKeybinding struct {
-	Key      string `yaml:"key"`
-	HasCtrl  bool   `yaml:"ctrl,omitempty"`
-	HasShift bool   `yaml:"shift,omitempty"`
-	HasAlt   bool   `yaml:"alt,omitempty"`
-}
-
-type Config struct {
-	Keys map[string]ConfigKeybinding `yaml:"keys"`
 }
 
 func (c *BaseClass) LoadConfig() error {
@@ -374,4 +431,70 @@ func (c *BaseClass) SyncState(base, target interface{}) {
 			targetField.Set(baseField)
 		}
 	}
+}
+
+func (c *BaseClass) UpdateTables() {
+	c.TView.QueueUpdateDraw(func() {
+		options := c.TViewTables["options"]
+		stateTable := c.TViewTables["state"]
+
+		optionValues := c.TViewTableValues["options"]
+		stateValues := c.TViewTableValues["state"]
+
+		optionValues["Run Program"] = TableCellValue{ZIndex: 10, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.RunProgram), ValueColor: util.GetColor(c.RunProgram, tcell.ColorGreen, tcell.ColorRed)}
+		optionValues["Use cooldowns"] = TableCellValue{ZIndex: 20, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.PopCooldowns), ValueColor: util.GetColor(c.PopCooldowns, tcell.ColorGreen, tcell.ColorRed)}
+		optionValues["Rotate cooldowns"] = TableCellValue{ZIndex: 30, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.ForceCooldowns), ValueColor: util.GetColor(c.ForceCooldowns, tcell.ColorGreen, tcell.ColorRed)}
+
+		// Remap the option values to a sortable slice
+		sortedOptionValues := make([]struct {
+			Key   string
+			Value TableCellValue
+		}, 0, len(optionValues))
+
+		for k, v := range optionValues {
+			sortedOptionValues = append(sortedOptionValues, struct {
+				Key   string
+				Value TableCellValue
+			}{Key: k, Value: v})
+		}
+
+		// Sort slice by ZIndex
+		sort.Slice(sortedOptionValues, func(i, j int) bool {
+			return sortedOptionValues[i].Value.ZIndex < sortedOptionValues[j].Value.ZIndex
+		})
+
+		for i, kv := range sortedOptionValues {
+			options.SetCell(i, 0, tview.NewTableCell(kv.Key).SetTextColor(kv.Value.NameColor).SetAlign(tview.AlignLeft))
+			options.SetCell(i, 1, tview.NewTableCell(kv.Value.Value).SetTextColor(kv.Value.ValueColor).SetAlign(tview.AlignLeft).SetExpansion(1))
+		}
+
+		stateValues["Is Alive"] = TableCellValue{ZIndex: 999, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.IsAlive), ValueColor: util.GetColor(c.State.IsAlive, tcell.ColorGreen, tcell.ColorRed)}
+		stateValues["In Combat"] = TableCellValue{ZIndex: 998, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.InCombat), ValueColor: util.GetColor(c.State.InCombat, tcell.ColorGreen, tcell.ColorRed)}
+		stateValues["Is Mounted"] = TableCellValue{ZIndex: 997, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.IsMounted), ValueColor: util.GetColor(c.State.IsMounted, tcell.ColorGreen, tcell.ColorRed)}
+		stateValues["Chat Open"] = TableCellValue{ZIndex: 996, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.ChatOpen), ValueColor: util.GetColor(c.State.ChatOpen, tcell.ColorGreen, tcell.ColorRed)}
+		stateValues["On Global Cooldown"] = TableCellValue{ZIndex: 100, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.OnGlobalCooldown), ValueColor: util.GetColor(c.State.OnGlobalCooldown, tcell.ColorGreen, tcell.ColorRed)}
+
+		// Remap the state values to a sortable slice
+		sortedStateValues := make([]struct {
+			Key   string
+			Value TableCellValue
+		}, 0, len(stateValues))
+
+		for k, v := range stateValues {
+			sortedStateValues = append(sortedStateValues, struct {
+				Key   string
+				Value TableCellValue
+			}{Key: k, Value: v})
+		}
+
+		// Sort slice by ZIndex
+		sort.Slice(sortedStateValues, func(i, j int) bool {
+			return sortedStateValues[i].Value.ZIndex < sortedStateValues[j].Value.ZIndex
+		})
+
+		for i, kv := range sortedStateValues {
+			stateTable.SetCell(i, 0, tview.NewTableCell(kv.Key).SetTextColor(kv.Value.NameColor).SetAlign(tview.AlignLeft))
+			stateTable.SetCell(i, 1, tview.NewTableCell(kv.Value.Value).SetTextColor(kv.Value.ValueColor).SetAlign(tview.AlignLeft).SetExpansion(1))
+		}
+	})
 }

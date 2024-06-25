@@ -107,3 +107,7 @@ func (c *Paladin) SetHolyPower() {
 
 	c.State.HolyPower = 0
 }
+
+func (c *Paladin) UpdateTables() {
+	c.BaseClass.UpdateTables()
+}

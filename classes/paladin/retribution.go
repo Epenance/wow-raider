@@ -1,7 +1,10 @@
 package paladin
 
 import (
+	"fmt"
+	"github.com/gdamore/tcell/v2"
 	"time"
+	"wow-raider/classes"
 	"wow-raider/util"
 )
 
@@ -35,6 +38,7 @@ func (c *Retribution) Run() {
 			c.SetState()
 
 			c.Rotation()
+			c.UpdateTables()
 		}
 	}
 }
@@ -156,4 +160,13 @@ func (c *Retribution) Rotation() {
 		return
 	}
 
+}
+
+func (c *Retribution) UpdateTables() {
+	// optionValues := c.TViewTableValues["options"]
+	stateValues := c.TViewTableValues["state"]
+
+	stateValues["Inquisition Active"] = classes.TableCellValue{ZIndex: 31, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.InquisitionActive), ValueColor: util.GetColor(c.State.InquisitionActive, tcell.ColorGreen, tcell.ColorRed)}
+
+	c.Paladin.UpdateTables()
 }
