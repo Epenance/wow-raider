@@ -1,7 +1,10 @@
 package paladin
 
 import (
+	"fmt"
+	"github.com/gdamore/tcell/v2"
 	"time"
+	"wow-raider/classes"
 	"wow-raider/util"
 )
 
@@ -23,9 +26,23 @@ type Retribution struct {
 }
 
 func (c *Retribution) Run() {
+
+	go func() {
+		for !c.InterruptProgram {
+			if c.RunProgram {
+				c.UpdateTables()
+				time.Sleep(100 * time.Millisecond)
+			}
+		}
+	}()
+
+	frequency := 30                                 // Updates per second
+	delay := time.Second / time.Duration(frequency) // Delay between each iteration
+
 	for !c.InterruptProgram {
+		startTime := time.Now()
+
 		if c.RunProgram {
-			// Do stuff
 			err := c.CaptureGame()
 
 			if err != nil {
@@ -36,7 +53,13 @@ func (c *Retribution) Run() {
 
 			c.Rotation()
 		}
+
+		elapsed := time.Since(startTime) // Time spend in this iteration
+		if elapsed < delay {
+			time.Sleep(delay - elapsed) // Delay for the remaining time
+		}
 	}
+
 }
 
 func (c *Retribution) Init() error {
@@ -156,4 +179,13 @@ func (c *Retribution) Rotation() {
 		return
 	}
 
+}
+
+func (c *Retribution) UpdateTables() {
+	// optionValues := c.TViewTableValues["options"]
+	stateValues := c.TViewTableValues["state"]
+
+	stateValues["Inquisition Active"] = classes.TableCellValue{ZIndex: 31, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.InquisitionActive), ValueColor: util.GetColor(c.State.InquisitionActive, tcell.ColorGreen, tcell.ColorRed)}
+
+	c.Paladin.UpdateTables()
 }

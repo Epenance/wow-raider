@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"github.com/gdamore/tcell/v2"
 	"image"
 	"io"
 	"os"
@@ -65,4 +66,11 @@ func IsColor(rgb RGB, img image.Image, x int, y int, debug ...bool) bool {
 	}
 
 	return correctColors
+}
+
+func GetColor(b bool, c1 tcell.Color, c2 tcell.Color) tcell.Color {
+	if b {
+		return c1
+	}
+	return c2
 }
