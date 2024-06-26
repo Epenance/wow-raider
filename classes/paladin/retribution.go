@@ -3,6 +3,7 @@ package paladin
 import (
 	"fmt"
 	"github.com/gdamore/tcell/v2"
+	"github.com/moutend/go-hook/pkg/types"
 	"time"
 	"wow-raider/classes"
 	"wow-raider/util"
@@ -63,7 +64,14 @@ func (c *Retribution) Run() {
 func (c *Retribution) Init() error {
 	c.Spec = "Retribution"
 
-	if err := c.Paladin.Init(); err != nil {
+	// []classes.KeyListener
+	listeners := []classes.KeyListener{}
+
+	listeners = append(listeners, classes.KeyListener{Key: types.VK_F4, Function: func() {
+		fmt.Println("test")
+	}})
+
+	if err := c.Paladin.Init(listeners); err != nil {
 		return err
 	}
 

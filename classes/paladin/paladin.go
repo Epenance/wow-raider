@@ -34,11 +34,11 @@ func (c *Paladin) PrintState() {
 	classes.PrintFields(reflect.ValueOf(c.State))
 }
 
-func (c *Paladin) Init() error {
+func (c *Paladin) Init(listeners []classes.KeyListener) error {
 	c.Class = "Paladin"
 	c.State.ActiveSeal = "none"
 
-	if err := c.BaseClass.Init(); err != nil {
+	if err := c.BaseClass.Init(listeners); err != nil {
 		return err
 	}
 

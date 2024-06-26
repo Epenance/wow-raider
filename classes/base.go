@@ -71,11 +71,16 @@ type TableCellValue struct {
 	ValueColor tcell.Color
 }
 
+type KeyListener struct {
+	Key      types.VKCode
+	Function func()
+}
+
 func (c *BaseClass) Uninit() {
 	keyboard.Uninstall()
 }
 
-func (c *BaseClass) Init() error {
+func (c *BaseClass) Init(listeners []KeyListener) error {
 	c.TViewTables = make(map[string]*tview.Table)
 
 	c.TViewTableValues = make(map[string]map[string]TableCellValue)
@@ -141,6 +146,13 @@ func (c *BaseClass) Init() error {
 				if event.VKCode == types.VK_F2 && event.Message == types.WM_KEYDOWN {
 					util.Log("Saving screenshot")
 					c.SaveScreenshot()
+				}
+
+				// Add listeners
+				for _, listener := range listeners {
+					if event.VKCode == listener.Key && event.Message == types.WM_KEYDOWN {
+						listener.Function()
+					}
 				}
 			case <-interrupt:
 				// If an interrupt signal is received, stop the program.
