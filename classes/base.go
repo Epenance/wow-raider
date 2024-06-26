@@ -27,6 +27,7 @@ type BaseState struct {
 	IsAlive          bool
 	InCombat         bool
 	IsMounted        bool
+	IsCasting        bool
 	ChatOpen         bool
 	OnGlobalCooldown bool
 }
@@ -429,6 +430,7 @@ func (c *BaseClass) SetState() {
 	c.State.IsMounted = c.CheckColor(util.PURPLE, 5, 5)
 	c.State.ChatOpen = c.CheckColor(util.PURPLE, 15, 5)
 	c.State.OnGlobalCooldown = c.CheckColor(util.PURPLE, 40, 5)
+	c.State.IsCasting = c.CheckColor(util.PURPLE, 10, 5)
 }
 
 func (c *BaseClass) SyncState(base, target interface{}) {
