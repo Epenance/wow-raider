@@ -7,12 +7,13 @@ import (
 
 type ShamanState struct {
 	classes.BaseState
-	PrimalStrikeAvailable bool
-	FlameShockAvailable   bool
-	FlameShockDotActive   bool
-	EarthShockAvailable   bool
-	WindfuryMissing       bool
-	FlametongueMissing    bool
+	PrimalStrikeAvailable  bool
+	FlameShockAvailable    bool
+	FlameShockDotActive    bool
+	EarthShockAvailable    bool
+	WindfuryMissing        bool
+	FlametongueMissing     bool
+	LightningShieldMissing bool
 }
 
 type Shaman struct {
@@ -41,6 +42,7 @@ func (c *Shaman) SetState() {
 	c.State.EarthShockAvailable = c.CheckColor(util.BLUE, 15, 0)
 	c.State.WindfuryMissing = c.CheckColor(util.RED, 20, 5)
 	c.State.FlametongueMissing = c.CheckColor(util.RED, 25, 5)
+	c.State.LightningShieldMissing = c.CheckColor(util.RED, 35, 5)
 }
 
 func (c *Shaman) UpdateTables() {

@@ -113,6 +113,10 @@ func (c *Enhancement) Rotation() {
 	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.EarthShockAvailable && state.FlameShockDotActive {
 		c.CastSpell("Earth Shock")
 	}
+
+	if !state.IsMounted && !state.OnGlobalCooldown && state.LightningShieldMissing {
+		c.CastSpell("Lightning Shield")
+	}
 }
 
 func (c *Enhancement) UpdateTables() {
