@@ -11,6 +11,8 @@ type ShamanState struct {
 	FlameShockAvailable   bool
 	FlameShockDotActive   bool
 	EarthShockAvailable   bool
+	WindfuryMissing       bool
+	FlametongueMissing    bool
 }
 
 type Shaman struct {
@@ -37,6 +39,8 @@ func (c *Shaman) SetState() {
 	c.State.FlameShockAvailable = c.CheckColor(util.BLUE, 5, 0)
 	c.State.FlameShockDotActive = c.CheckColor(util.GREEN, 30, 0)
 	c.State.EarthShockAvailable = c.CheckColor(util.BLUE, 15, 0)
+	c.State.WindfuryMissing = c.CheckColor(util.RED, 20, 5)
+	c.State.FlametongueMissing = c.CheckColor(util.RED, 25, 5)
 }
 
 func (c *Shaman) UpdateTables() {

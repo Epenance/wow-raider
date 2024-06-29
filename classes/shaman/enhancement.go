@@ -90,6 +90,14 @@ func (c *Enhancement) Rotation() {
 	state := c.State
 	combatAliveAndNotMounted := state.IsAlive && !state.IsMounted && state.InCombat
 
+	if state.IsAlive && !state.IsMounted && !state.OnGlobalCooldown && state.WindfuryMissing {
+		c.CastSpell("Windfury Weapon")
+	}
+
+	if state.IsAlive && !state.IsMounted && !state.OnGlobalCooldown && state.FlametongueMissing {
+		c.CastSpell("Flametongue Weapon")
+	}
+
 	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.StormstrikeAvailable {
 		c.CastSpell("Stormstrike")
 	}
