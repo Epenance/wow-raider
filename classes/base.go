@@ -144,7 +144,7 @@ func (c *BaseClass) Init(listeners []KeyListener) error {
 					c.ForceCooldowns = !c.ForceCooldowns
 				}
 
-				if event.VKCode == types.VK_F2 && event.Message == types.WM_KEYDOWN {
+				if event.VKCode == types.VK_F12 && event.Message == types.WM_KEYDOWN {
 					util.Log("Saving screenshot")
 					c.SaveScreenshot()
 				}

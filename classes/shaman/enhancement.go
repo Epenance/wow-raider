@@ -10,8 +10,9 @@ import (
 
 type EnhancementState struct {
 	ShamanState
-	LavaLashAvailable    bool
-	StormstrikeAvailable bool
+	LavaLashAvailable     bool
+	StormstrikeAvailable  bool
+	MaelstromWeaponStacks int
 }
 
 type Enhancement struct {
@@ -79,6 +80,14 @@ func (c *Enhancement) SetState() {
 
 	c.State.LavaLashAvailable = c.CheckColor(util.BLUE, 20, 0)
 	c.State.StormstrikeAvailable = c.CheckColor(util.BLUE, 25, 0)
+
+	maelstromWeaponsFive := c.CheckColor(util.GREEN, 35, 0)
+
+	if maelstromWeaponsFive {
+		c.State.MaelstromWeaponStacks = 5
+	} else {
+		c.State.MaelstromWeaponStacks = 0
+	}
 }
 
 func (c *Enhancement) Rotation() {
@@ -92,30 +101,47 @@ func (c *Enhancement) Rotation() {
 
 	if state.IsAlive && !state.IsMounted && !state.OnGlobalCooldown && state.WindfuryMissing {
 		c.CastSpell("Windfury Weapon")
+		return
 	}
 
-	if state.IsAlive && !state.IsMounted && !state.OnGlobalCooldown && state.FlametongueMissing {
+	if state.IsAlive && !state.IsMounted && !state.OnGlobalCooldown && state.FlametongueMissing && !state.WindfuryMissing {
 		c.CastSpell("Flametongue Weapon")
-	}
-
-	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.StormstrikeAvailable {
-		c.CastSpell("Stormstrike")
-	}
-
-	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.LavaLashAvailable {
-		c.CastSpell("Lava Lash")
+		return
 	}
 
 	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.FlameShockAvailable && !state.FlameShockDotActive {
 		c.CastSpell("Flame Shock")
+		return
+	}
+
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.FireNovaAvailable && state.FlameshockDotsActive >= 3 {
+		c.CastSpell("Fire Nova")
+		return
+	}
+
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.StormstrikeAvailable {
+		c.CastSpell("Stormstrike")
+		return
+	}
+
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.LavaLashAvailable {
+		c.CastSpell("Lava Lash")
+		return
+	}
+
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.MaelstromWeaponStacks == 5 {
+		c.CastSpell("Lightning Bolt", 500)
+		return
 	}
 
 	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.EarthShockAvailable && state.FlameShockDotActive {
 		c.CastSpell("Earth Shock")
+		return
 	}
 
 	if !state.IsMounted && !state.OnGlobalCooldown && state.LightningShieldMissing {
 		c.CastSpell("Lightning Shield")
+		return
 	}
 }
 
