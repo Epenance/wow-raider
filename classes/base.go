@@ -27,6 +27,7 @@ type BaseState struct {
 	IsAlive          bool
 	InCombat         bool
 	IsMounted        bool
+	IsCasting        bool
 	ChatOpen         bool
 	OnGlobalCooldown bool
 }
@@ -116,7 +117,7 @@ func (c *BaseClass) Init(listeners []KeyListener) error {
 		for {
 			select {
 			case event := <-events:
-				if event.VKCode == types.VK_PAUSE && event.Message == types.WM_KEYDOWN {
+				if (event.VKCode == types.VK_PAUSE || event.VKCode == types.VK_F2) && event.Message == types.WM_KEYDOWN {
 					if c.RunProgram {
 						util.Log("Program paused")
 					} else {
@@ -143,7 +144,7 @@ func (c *BaseClass) Init(listeners []KeyListener) error {
 					c.ForceCooldowns = !c.ForceCooldowns
 				}
 
-				if event.VKCode == types.VK_F2 && event.Message == types.WM_KEYDOWN {
+				if event.VKCode == types.VK_F12 && event.Message == types.WM_KEYDOWN {
 					util.Log("Saving screenshot")
 					c.SaveScreenshot()
 				}
@@ -429,6 +430,7 @@ func (c *BaseClass) SetState() {
 	c.State.IsMounted = c.CheckColor(util.PURPLE, 5, 5)
 	c.State.ChatOpen = c.CheckColor(util.PURPLE, 15, 5)
 	c.State.OnGlobalCooldown = c.CheckColor(util.PURPLE, 40, 5)
+	c.State.IsCasting = c.CheckColor(util.PURPLE, 10, 5)
 }
 
 func (c *BaseClass) SyncState(base, target interface{}) {
