@@ -117,7 +117,7 @@ func (c *BaseClass) Init(listeners []KeyListener) error {
 		for {
 			select {
 			case event := <-events:
-				if event.VKCode == types.VK_PAUSE && event.Message == types.WM_KEYDOWN {
+				if (event.VKCode == types.VK_PAUSE || event.VKCode == types.VK_F2) && event.Message == types.WM_KEYDOWN {
 					if c.RunProgram {
 						util.Log("Program paused")
 					} else {

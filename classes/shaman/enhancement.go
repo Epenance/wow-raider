@@ -129,7 +129,7 @@ func (c *Enhancement) Rotation() {
 		return
 	}
 
-	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.MaelstromWeaponStacks == 5 {
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.MaelstromWeaponStacks == 5 && !state.IsCasting {
 		c.CastSpell("Lightning Bolt", 500)
 		return
 	}
