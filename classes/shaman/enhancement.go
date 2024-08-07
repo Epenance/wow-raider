@@ -129,6 +129,11 @@ func (c *Enhancement) Rotation() {
 		return
 	}
 
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.MaelstromWeaponStacks == 5 && !state.IsCasting && state.ShouldAoE {
+		c.CastSpell("Chain Lightning", 500)
+		return
+	}
+
 	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.MaelstromWeaponStacks == 5 && !state.IsCasting {
 		c.CastSpell("Lightning Bolt", 500)
 		return
