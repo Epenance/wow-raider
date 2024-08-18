@@ -2,6 +2,7 @@ package shaman
 
 import (
 	"fmt"
+	"github.com/gdamore/tcell/v2"
 	"github.com/moutend/go-hook/pkg/types"
 	"time"
 	"wow-raider/classes"
@@ -13,6 +14,10 @@ type EnhancementState struct {
 	LavaLashAvailable     bool
 	StormstrikeAvailable  bool
 	MaelstromWeaponStacks int
+	WindfuryMissing       bool
+	FlametongueMissing    bool
+	PrimalStrikeAvailable bool
+	ShouldAoE             bool
 }
 
 type Enhancement struct {
@@ -78,8 +83,15 @@ func (c *Enhancement) SetState() {
 	// Hack because there is no inheritance in Go
 	c.SyncState(&c.Shaman.State, &c.State)
 
+	c.State.WindfuryMissing = c.CheckColor(util.RED, 20, 5)
+	c.State.FlametongueMissing = c.CheckColor(util.RED, 25, 5)
+
 	c.State.LavaLashAvailable = c.CheckColor(util.BLUE, 20, 0)
 	c.State.StormstrikeAvailable = c.CheckColor(util.BLUE, 25, 0)
+
+	c.State.PrimalStrikeAvailable = c.CheckColor(util.BLUE, 45, 5)
+
+	c.State.ShouldAoE = c.CheckColor(util.GREEN, 50, 5)
 
 	maelstromWeaponsFive := c.CheckColor(util.GREEN, 35, 0)
 
@@ -152,7 +164,9 @@ func (c *Enhancement) Rotation() {
 
 func (c *Enhancement) UpdateTables() {
 	// optionValues := c.TViewTableValues["options"]
-	// stateValues := c.TViewTableValues["state"]
+	stateValues := c.TViewTableValues["state"]
+
+	stateValues["Should AoE"] = classes.TableCellValue{ZIndex: 1, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.ShouldAoE), ValueColor: util.GetColor(c.State.ShouldAoE, tcell.ColorGreen, tcell.ColorRed)}
 
 	c.Shaman.UpdateTables()
 }

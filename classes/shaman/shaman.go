@@ -1,8 +1,6 @@
 package shaman
 
 import (
-	"fmt"
-	"github.com/gdamore/tcell/v2"
 	"wow-raider/classes"
 	"wow-raider/util"
 )
@@ -10,16 +8,13 @@ import (
 type ShamanState struct {
 	classes.BaseState
 	ChainLightningAvailable bool
-	PrimalStrikeAvailable   bool
-	FlameShockAvailable     bool
-	FlameShockDotActive     bool
-	EarthShockAvailable     bool
-	WindfuryMissing         bool
-	FlametongueMissing      bool
-	LightningShieldMissing  bool
-	FlameshockDotsActive    int
-	FireNovaAvailable       bool
-	ShouldAoE               bool
+
+	FlameShockAvailable    bool
+	FlameShockDotActive    bool
+	EarthShockAvailable    bool
+	LightningShieldMissing bool
+	FlameshockDotsActive   int
+	FireNovaAvailable      bool
 }
 
 type Shaman struct {
@@ -42,14 +37,11 @@ func (c *Shaman) SetState() {
 
 	c.SyncState(&c.BaseClass.State, &c.State)
 
-	c.State.PrimalStrikeAvailable = c.CheckColor(util.BLUE, 0, 0)
-	c.State.PrimalStrikeAvailable = c.CheckColor(util.BLUE, 45, 5)
 	c.State.FlameShockAvailable = c.CheckColor(util.BLUE, 5, 0)
 	c.State.FlameShockDotActive = c.CheckColor(util.GREEN, 30, 0)
-	c.State.ShouldAoE = c.CheckColor(util.GREEN, 50, 5)
+
 	c.State.EarthShockAvailable = c.CheckColor(util.BLUE, 15, 0)
-	c.State.WindfuryMissing = c.CheckColor(util.RED, 20, 5)
-	c.State.FlametongueMissing = c.CheckColor(util.RED, 25, 5)
+
 	c.State.LightningShieldMissing = c.CheckColor(util.RED, 35, 5)
 	c.State.FireNovaAvailable = c.CheckColor(util.BLUE, 45, 0)
 
@@ -64,8 +56,7 @@ func (c *Shaman) SetState() {
 }
 
 func (c *Shaman) UpdateTables() {
-	stateValues := c.TViewTableValues["state"]
-	stateValues["Should AoE"] = classes.TableCellValue{ZIndex: 1, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.ShouldAoE), ValueColor: util.GetColor(c.State.ShouldAoE, tcell.ColorGreen, tcell.ColorRed)}
+	// stateValues := c.TViewTableValues["state"]
 
 	c.BaseClass.UpdateTables()
 }
