@@ -457,7 +457,7 @@ func (c *BaseClass) UpdateTables() {
 
 		optionValues["Run Program"] = TableCellValue{ZIndex: 10, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.RunProgram), ValueColor: util.GetColor(c.RunProgram, tcell.ColorGreen, tcell.ColorRed)}
 		optionValues["Use cooldowns"] = TableCellValue{ZIndex: 20, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.PopCooldowns), ValueColor: util.GetColor(c.PopCooldowns, tcell.ColorGreen, tcell.ColorRed)}
-		optionValues["Rotate cooldowns"] = TableCellValue{ZIndex: 30, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.ForceCooldowns), ValueColor: util.GetColor(c.ForceCooldowns, tcell.ColorGreen, tcell.ColorRed)}
+		optionValues["Rotate cooldowns (F1)"] = TableCellValue{ZIndex: 30, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.ForceCooldowns), ValueColor: util.GetColor(c.ForceCooldowns, tcell.ColorGreen, tcell.ColorRed)}
 
 		stateValues["Is Alive"] = TableCellValue{ZIndex: 999, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.IsAlive), ValueColor: util.GetColor(c.State.IsAlive, tcell.ColorGreen, tcell.ColorRed)}
 		stateValues["In Combat"] = TableCellValue{ZIndex: 998, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.InCombat), ValueColor: util.GetColor(c.State.InCombat, tcell.ColorGreen, tcell.ColorRed)}

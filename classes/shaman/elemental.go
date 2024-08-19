@@ -21,8 +21,10 @@ type ElementalState struct {
 
 type Elemental struct {
 	Shaman
-	State      ElementalState
-	AoEEnabled bool
+	State            ElementalState
+	AoEEnabled       bool
+	UseFireElemental bool
+	UseBloodlust     bool
 }
 
 func (c *Elemental) Run() {
@@ -70,6 +72,14 @@ func (c *Elemental) Init() error {
 		c.AoEEnabled = !c.AoEEnabled
 	}})
 
+	listeners = append(listeners, classes.KeyListener{Key: types.VK_F3, Function: func() {
+		c.UseFireElemental = !c.UseFireElemental
+	}})
+
+	listeners = append(listeners, classes.KeyListener{Key: types.VK_F4, Function: func() {
+		c.UseBloodlust = !c.UseBloodlust
+	}})
+
 	if err := c.Shaman.Init(listeners); err != nil {
 		return err
 	}
@@ -100,6 +110,10 @@ func (c *Elemental) SetState() {
 
 func (c *Elemental) Rotation() {
 
+	// TODO:
+	// - Add support for Totems
+	// - Add support for Cooldowns
+
 	if c.State.ChatOpen {
 		return
 	}
@@ -107,12 +121,12 @@ func (c *Elemental) Rotation() {
 	state := c.State
 	combatAliveAndNotMounted := state.IsAlive && !state.IsMounted && state.InCombat
 
-	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.FlametongueMissing && !state.IsCasting {
+	if state.IsAlive && !state.IsMounted && !state.OnGlobalCooldown && state.FlametongueMissing && !state.IsCasting {
 		c.CastSpell("Flametongue Weapon")
 		return
 	}
 
-	if combatAliveAndNotMounted && !state.OnGlobalCooldown && state.LightningShieldMissing {
+	if state.IsAlive && !state.IsMounted && !state.OnGlobalCooldown && state.LightningShieldMissing {
 		c.CastSpell("Lightning Shield")
 		return
 	}
@@ -139,7 +153,7 @@ func (c *Elemental) Rotation() {
 		return
 	}
 
-	if combatAliveAndNotMounted && !state.OnGlobalCooldown && !state.IsCasting && state.LavaBurstAvailable && !state.IsMoving {
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && !state.IsCasting && state.LavaBurstAvailable && !state.IsMoving && (state.FlameShockAvailable || state.FlameShockDotActive) {
 		c.CastSpell("Lava Burst")
 		return
 	}
@@ -163,9 +177,12 @@ func (c *Elemental) Rotation() {
 
 func (c *Elemental) UpdateTables() {
 	optionValues := c.TViewTableValues["options"]
-	// stateValues := c.TViewTableValues["state"]
+	stateValues := c.TViewTableValues["state"]
 
 	optionValues["AoE Enabled (F2)"] = classes.TableCellValue{ZIndex: 1, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.AoEEnabled), ValueColor: util.GetColor(c.AoEEnabled, tcell.ColorGreen, tcell.ColorRed)}
+	optionValues["Fire elemental (F3)"] = classes.TableCellValue{ZIndex: 2, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.UseFireElemental), ValueColor: util.GetColor(c.UseFireElemental, tcell.ColorGreen, tcell.ColorRed)}
+	optionValues["Bloodlust (F4)"] = classes.TableCellValue{ZIndex: 3, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.UseBloodlust), ValueColor: util.GetColor(c.UseBloodlust, tcell.ColorGreen, tcell.ColorRed)}
+	stateValues["Flametongue Missing"] = classes.TableCellValue{ZIndex: 1, NameColor: tcell.ColorWhite, Value: fmt.Sprintf("%t", c.State.FlametongueMissing), ValueColor: util.GetColor(c.State.FlametongueMissing, tcell.ColorGreen, tcell.ColorRed)}
 
 	c.Shaman.UpdateTables()
 }
