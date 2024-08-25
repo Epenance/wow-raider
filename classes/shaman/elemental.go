@@ -11,12 +11,16 @@ import (
 
 type ElementalState struct {
 	ShamanState
-	IsMoving              bool
-	LightningShieldCount  int
-	ThunderstormAvailable bool
-	LavaBurstAvailable    bool
-	LightingBoltAvailable bool
-	FlametongueMissing    bool
+	IsMoving                  bool
+	LightningShieldCount      int
+	ThunderstormAvailable     bool
+	LavaBurstAvailable        bool
+	LightingBoltAvailable     bool
+	FlametongueMissing        bool
+	ElementalMasteryAvailable bool
+	BloodFuryAvailable        bool
+	FireElementalAvailable    bool
+	BloodlustAvailable        bool
 }
 
 type Elemental struct {
@@ -98,6 +102,10 @@ func (c *Elemental) SetState() {
 	c.State.ThunderstormAvailable = c.CheckColor(util.BLUE, 20, 0)
 	c.State.IsMoving = c.CheckColor(util.RED, 45, 0)
 	c.State.FlametongueMissing = c.CheckColor(util.RED, 25, 5)
+	c.State.ElementalMasteryAvailable = c.CheckColor(util.BLUE, 50, 0)
+	c.State.BloodFuryAvailable = c.CheckColor(util.BLUE, 55, 0)
+	c.State.FireElementalAvailable = c.CheckColor(util.BLUE, 50, 5)
+	c.State.BloodlustAvailable = c.CheckColor(util.BLUE, 55, 5)
 
 	lightningShieldStacks := c.CheckColor(util.GREEN, 40, 0)
 
@@ -120,6 +128,28 @@ func (c *Elemental) Rotation() {
 
 	state := c.State
 	combatAliveAndNotMounted := state.IsAlive && !state.IsMounted && state.InCombat
+
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && !state.IsCasting && c.UseFireElemental && state.FireElementalAvailable {
+		c.CastSpell("Fire Elemental Totem")
+		c.UseFireElemental = false
+		return
+	}
+
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && !state.IsCasting && c.UseBloodlust && state.BloodlustAvailable {
+		c.CastSpell("Bloodlust")
+		c.UseBloodlust = false
+		return
+	}
+
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && !state.IsCasting && c.ForceCooldowns && state.BloodFuryAvailable {
+		c.CastSpell("Blood Fury")
+		return
+	}
+
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && !state.IsCasting && state.ElementalMasteryAvailable && c.ForceCooldowns {
+		c.CastSpell("Elemental Mastery")
+		return
+	}
 
 	if state.IsAlive && !state.IsMounted && !state.OnGlobalCooldown && state.FlametongueMissing && !state.IsCasting {
 		c.CastSpell("Flametongue Weapon")
@@ -168,7 +198,7 @@ func (c *Elemental) Rotation() {
 		return
 	}
 
-	if combatAliveAndNotMounted && !state.OnGlobalCooldown && !state.IsCasting {
+	if combatAliveAndNotMounted && !state.OnGlobalCooldown && !state.IsCasting && state.LightingBoltAvailable {
 		c.CastSpell("Lightning Bolt")
 		return
 	}
